@@ -45,15 +45,9 @@ app.post('/api/books', (req, res) => {
     );
     const result = stmt.run(title, author, status, category, notes);
     
-    // better-sqlite3 returns lastInsertRowid as a BigInt, so we convert it to a number for JSON
-    res.status(201).json({
-      id: Number(result.lastInsertRowid),
-      title,
-      author,
-      status,
-      category,
-      notes
-    });
+    // Fetch the newly inserted book to return all fields including created_at
+    const newBook = db.prepare('SELECT * FROM books WHERE id = ?').get(Number(result.lastInsertRowid));
+    res.status(201).json(newBook);
   } catch (error) {
     console.error('Error adding book:', error);
     res.status(500).json({ error: 'Failed to add book' });
