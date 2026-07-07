@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       const newBook = await response.json();
-      addBookToTable(newBook);
+      addBookToTable(newBook, true); // Prepend new book to top
       form.reset();
     } catch (error) {
       console.error('Error adding book:', error);
@@ -90,7 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  function addBookToTable(book) {
+  function addBookToTable(book, prepend = false) {
     const row = document.createElement('tr');
     row.innerHTML = `
       <td>${escapeHtml(book.title)}</td>
@@ -103,7 +103,11 @@ document.addEventListener('DOMContentLoaded', () => {
         <button class="delete-btn" data-id="${book.id}">Delete</button>
       </td>
     `;
-    booksBody.appendChild(row);
+    if (prepend) {
+      booksBody.insertBefore(row, booksBody.firstChild);
+    } else {
+      booksBody.appendChild(row);
+    }
     noBooksMessage.style.display = 'none';
   }
 
