@@ -8,3 +8,37 @@ body {
 h1 {
   color: #333;
 }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+th, td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+
+th {
+  background-color: #f4f4f4;
+}
+
+.empty-message {
+  display: none;
+  text-align: center;
+  color: #777;
+  margin-top: 20px;
+}
+
+.editable input, .editable select, .editable textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 4px;
+}
+
+button {
+  margin-right: 5px;
+  cursor: pointer;
+}

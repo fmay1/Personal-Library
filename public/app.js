@@ -40,7 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Handle delete button clicks using event delegation
+  // Handle delete and edit/save button clicks using event delegation
   booksBody.addEventListener('click', async (e) => {
     if (e.target.classList.contains('delete-btn')) {
       const id = e.target.dataset.id;
@@ -65,6 +65,75 @@ document.addEventListener('DOMContentLoaded', () => {
       } catch (error) {
         console.error('Error deleting book:', error);
         alert('Failed to delete book. Please try again.');
+      }
+    }
+
+    if (e.target.classList.contains('edit-btn') || e.target.classList.contains('save-btn')) {
+      const btn = e.target;
+      const row = btn.closest('tr');
+      
+      if (btn.classList.contains('edit-btn')) {
+        // Switch to edit mode
+        btn.textContent = 'Save';
+        btn.classList.remove('edit-btn');
+        btn.classList.add('save-btn');
+        
+        const cells = row.querySelectorAll('.editable');
+        cells.forEach(cell => {
+          const field = cell.dataset.field;
+          const value = cell.textContent;
+          let input;
+          
+          if (field === 'status') {
+            input = document.createElement('select');
+            input.innerHTML = `
+              <option value="want to read" ${value === 'want to read' ? 'selected' : ''}>Want to Read</option>
+              <option value="reading" ${value === 'reading' ? 'selected' : ''}>Reading</option>
+              <option value="read" ${value === 'read' ? 'selected' : ''}>Read</option>
+            `;
+          } else if (field === 'notes') {
+            input = document.createElement('textarea');
+            input.rows = 3;
+            input.value = value;
+          } else {
+            input = document.createElement('input');
+            input.type = 'text';
+            input.value = value;
+          }
+          
+          input.dataset.field = field;
+          cell.innerHTML = '';
+          cell.appendChild(input);
+        });
+      } else {
+        // Save mode
+        btn.textContent = 'Edit';
+        btn.classList.remove('save-btn');
+        btn.classList.add('edit-btn');
+        
+        const id = row.dataset.id;
+        const cells = row.querySelectorAll('.editable');
+        const updatedData = {};
+        
+        cells.forEach(cell => {
+          const input = cell.querySelector('input, select, textarea');
+          updatedData[input.dataset.field] = input.value;
+          // Revert to text
+          cell.textContent = input.value;
+        });
+        
+        try {
+          const response = await fetch(`/api/books/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updatedData)
+          });
+          
+          if (!response.ok) throw new Error('Failed to update book');
+        } catch (error) {
+          console.error('Error updating book:', error);
+          alert('Failed to update book.');
+        }
       }
     }
   });
@@ -92,14 +161,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function addBookToTable(book, prepend = false) {
     const row = document.createElement('tr');
+    row.dataset.id = book.id;
     row.innerHTML = `
-      <td>${escapeHtml(book.title)}</td>
-      <td>${escapeHtml(book.author || '')}</td>
-      <td>${escapeHtml(book.status)}</td>
-      <td>${escapeHtml(book.category || '')}</td>
-      <td>${escapeHtml(book.notes || '')}</td>
+      <td class="editable" data-field="title">${escapeHtml(book.title)}</td>
+      <td class="editable" data-field="author">${escapeHtml(book.author || '')}</td>
+      <td class="editable" data-field="status">${escapeHtml(book.status)}</td>
+      <td class="editable" data-field="category">${escapeHtml(book.category || '')}</td>
+      <td class="editable" data-field="notes">${escapeHtml(book.notes || '')}</td>
       <td>${new Date(book.created_at).toLocaleDateString()}</td>
       <td>
+        <button class="edit-btn" data-id="${book.id}">Edit</button>
         <button class="delete-btn" data-id="${book.id}">Delete</button>
       </td>
     `;

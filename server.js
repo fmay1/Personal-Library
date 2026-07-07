@@ -65,6 +65,29 @@ app.get('/api/books', (req, res) => {
   }
 });
 
+// Update a book
+app.put('/api/books/:id', (req, res) => {
+  const { id } = req.params;
+  const { title, author, status, category, notes } = req.body;
+  
+  try {
+    const stmt = db.prepare(
+      'UPDATE books SET title = ?, author = ?, status = ?, category = ?, notes = ? WHERE id = ?'
+    );
+    const result = stmt.run(title, author, status, category, notes, id);
+    
+    if (result.changes === 0) {
+      return res.status(404).json({ error: 'Book not found' });
+    }
+    
+    const updatedBook = db.prepare('SELECT * FROM books WHERE id = ?').get(Number(id));
+    res.json(updatedBook);
+  } catch (error) {
+    console.error('Error updating book:', error);
+    res.status(500).json({ error: 'Failed to update book' });
+  }
+});
+
 // Delete a book
 app.delete('/api/books/:id', (req, res) => {
   const { id } = req.params;
