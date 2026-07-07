@@ -28,7 +28,8 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to add book');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to add book');
       }
 
       const newBook = await response.json();
@@ -36,7 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
       form.reset();
     } catch (error) {
       console.error('Error adding book:', error);
-      alert('Failed to add book. Please try again.');
+      alert(error.message);
     }
   });
 
@@ -52,7 +53,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         if (!response.ok) {
-          throw new Error('Failed to delete book');
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.error || 'Failed to delete book');
         }
 
         // Remove the row from the table
@@ -64,7 +66,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       } catch (error) {
         console.error('Error deleting book:', error);
-        alert('Failed to delete book. Please try again.');
+        alert(error.message);
       }
     }
 
@@ -129,10 +131,13 @@ document.addEventListener('DOMContentLoaded', () => {
             body: JSON.stringify(updatedData)
           });
           
-          if (!response.ok) throw new Error('Failed to update book');
+          if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.error || 'Failed to update book');
+          }
         } catch (error) {
           console.error('Error updating book:', error);
-          alert('Failed to update book.');
+          alert(error.message);
         }
       }
     }

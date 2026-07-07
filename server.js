@@ -74,7 +74,7 @@ app.put('/api/books/:id', (req, res) => {
     const stmt = db.prepare(
       'UPDATE books SET title = ?, author = ?, status = ?, category = ?, notes = ? WHERE id = ?'
     );
-    const result = stmt.run(title, author, status, category, notes, id);
+    const result = stmt.run(title, author, status, category, notes, Number(id));
     
     if (result.changes === 0) {
       return res.status(404).json({ error: 'Book not found' });
@@ -93,7 +93,7 @@ app.delete('/api/books/:id', (req, res) => {
   const { id } = req.params;
   try {
     const stmt = db.prepare('DELETE FROM books WHERE id = ?');
-    const result = stmt.run(id);
+    const result = stmt.run(Number(id));
     
     if (result.changes === 0) {
       return res.status(404).json({ error: 'Book not found' });
