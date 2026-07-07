@@ -40,6 +40,35 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  // Handle delete button clicks using event delegation
+  booksBody.addEventListener('click', async (e) => {
+    if (e.target.classList.contains('delete-btn')) {
+      const id = e.target.dataset.id;
+      if (!confirm('Are you sure you want to delete this book?')) return;
+
+      try {
+        const response = await fetch(`/api/books/${id}`, {
+          method: 'DELETE'
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to delete book');
+        }
+
+        // Remove the row from the table
+        e.target.closest('tr').remove();
+
+        // Check if table is empty to show the message
+        if (booksBody.children.length === 0) {
+          noBooksMessage.style.display = 'block';
+        }
+      } catch (error) {
+        console.error('Error deleting book:', error);
+        alert('Failed to delete book. Please try again.');
+      }
+    }
+  });
+
   async function loadBooks() {
     try {
       const response = await fetch('/api/books');

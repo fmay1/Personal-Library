@@ -1,7 +1,7 @@
 # PROGRESS.md
 
 ## Current State
-Step 6 completed: Books are now persisted in the database and loaded from the server when the page loads.
+Step 7 completed: Delete book API endpoint and frontend button implemented. Books can now be removed from the database and UI.
 
 ## Build Order Progress
 - [x] 1. Project structure & dependencies
@@ -10,7 +10,7 @@ Step 6 completed: Books are now persisted in the database and loaded from the se
 - [x] 4. Add book API endpoint
 - [x] 5. Add book form (frontend)
 - [x] 6. List books API endpoint
-- [ ] 7. Delete book API endpoint + button
+- [x] 7. Delete book API endpoint + button
 - [ ] 8. Edit book API endpoint + inline editing
 - [ ] 9. Search/filter
 - [ ] 10. Duplicate warning
