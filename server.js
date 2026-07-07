@@ -60,6 +60,17 @@ app.post('/api/books', (req, res) => {
   }
 });
 
+// List all books
+app.get('/api/books', (req, res) => {
+  try {
+    const books = db.prepare('SELECT * FROM books ORDER BY created_at DESC').all();
+    res.json(books);
+  } catch (error) {
+    console.error('Error fetching books:', error);
+    res.status(500).json({ error: 'Failed to fetch books' });
+  }
+});
+
 // Start the server
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);
