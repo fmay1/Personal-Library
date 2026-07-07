@@ -27,6 +27,11 @@ console.log('Database initialized successfully.');
 // Serve static files from the public directory
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Explicitly serve the frontend on the root path
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
 // Start the server
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);

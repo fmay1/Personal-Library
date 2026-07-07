@@ -1,12 +1,12 @@
 # PROGRESS.md
 
 ## Current State
-Step 2 completed: Database setup. SQLite database (`library.db`) is initialized and the `books` table is created on startup.
+Step 3 completed: Frontend is served correctly. Express explicitly handles the root route to serve `index.html`, and the HTML skeleton includes the add form, search input, and books table.
 
 ## Build Order Progress
 - [x] 1. Project structure & dependencies
 - [x] 2. Database setup
-- [ ] 3. Serve frontend
+- [x] 3. Serve frontend
 - [ ] 4. Add book API endpoint
 - [ ] 5. Add book form (frontend)
 - [ ] 6. List books API endpoint
