@@ -1,7 +1,7 @@
 # PROGRESS.md
 
 ## Current State
-Visual Redesign Step 4 refined: Table rows now appear as distinct cards with vertical spacing, subtle shadows, and rounded edge corners.
+Visual Redesign Step 5 completed: Search input styling applied to `public/style.css`.
 
 ## Build Order Progress
 - [x] 1. Project structure & dependencies
@@ -21,7 +21,7 @@ Visual Redesign Step 4 refined: Table rows now appear as distinct cards with ver
 - [x] Step 2: Form styling — inputs, labels, spacing
 - [x] Step 3: Button styling — primary, edit, delete
 - [x] Step 4: Table styling — header, rows, hover (refined with card-style rows)
-- [ ] Step 5: Search input styling
+- [x] Step 5: Search input styling
 - [ ] Step 6: Form card container + empty messages
 
 ## Step 1: Base styles (Visual Redesign)
@@ -49,3 +49,8 @@ Visual Redesign Step 4 refined: Table rows now appear as distinct cards with ver
 - Styled `td` with `12px 16px` padding, `#fff` background, `box-shadow: 0 1px 2px rgba(0,0,0,0.05)`, and removed bottom borders.
 - Added `border-radius: 6px` to `td:first-child` (left edges) and `td:last-child` (right edges) for a clean card appearance.
 - Updated `tr:hover td` to change background to `#f9fafb` for row highlighting.
+
+## Step 5: Search input styling (Visual Redesign)
+- Styled `#search-input` with `100%` width, `10px 14px` padding, `#d1d5db` border, `6px` border-radius, `14px` font size, `inherit` font family, and `#fff` background to match form inputs.
+- Added `#search-input:focus` with `outline: none`, `#4f46e5` border, and purple box-shadow for consistent focus state.
+- Updated `.search-container` with `margin-top: 24px` and `margin-bottom: 16px` for better vertical spacing around the search box.
