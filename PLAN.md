@@ -140,6 +140,15 @@ Things the AI should avoid introducing unless I explicitly approve them:
 3. Clearing the search shows all books again
 4. If no books match, the table shows "No books match your search"
 
+**Flow 6: Rate a book**
+1. When adding a new book, the user sees a "Rating" field with a dropdown containing "Not rated" and star options (⭐ through ⭐⭐⭐⭐⭐)
+2. The user selects a rating (1-5 stars) or leaves it as "Not rated"
+3. The rating is stored as an integer (1-5) in the SQLite database; "Not rated" means NULL
+4. In the table, rated books display their star count (e.g., ⭐⭐⭐ for a 3-star rating); unrated books show a blank cell
+5. When editing a book inline, the rating cell becomes a select dropdown with the same options
+6. The user can change the rating at any time via inline editing
+7. The sort dropdown includes "Rating (Highest)" and "Rating (Lowest)" options; unrated books sort to the bottom for "Highest" and to the top for "Lowest"
+
 ## 10. Edge Cases & Error Handling
 
 - **Empty title on add/edit:** show an error message next to the title field, don't submit
@@ -200,7 +209,8 @@ Milestone-sized steps, layered from simplest to most complex:
 10. **Duplicate warning** — On add, check if a book with the same title already exists; show a confirmation dialog before proceeding
 11. **Client-side sorting** — Add sort controls (buttons or dropdown) to sort the table by date added (newest/oldest) or alphabetically by title (A-Z/Z-A); sorting happens in JavaScript on the in-memory array after data arrives from the API, consistent with the client-side search/filter approach
 12. **Summary card** — Add a card that displays the total number of books and a breakdown by status (read, reading, want to read). Purely client-side — no new API endpoints needed.
-13. **Error handling & polish** — Handle server errors gracefully (e.g., "Couldn't connect to server"), ensure empty table shows "no books yet" message
+13. **Star rating** — Add a 1-5 star rating field to books. Stored as an integer (1-5) in SQLite, nullable. Displayed as Unicode star characters (⭐) in the table. Editable via inline cell editing with a select dropdown. Unrated books show blank. Includes sort-by-rating options in the sort dropdown.
+14. **Error handling & polish** — Handle server errors gracefully (e.g., "Couldn't connect to server"), ensure empty table shows "no books yet" message
 
 ### Step 12: Summary Card — Detailed Implementation
 
@@ -239,7 +249,382 @@ Milestone-sized steps, layered from simplest to most complex:
 
 **No server changes needed.** The `allBooks` array already contains the `status` field for every book, so all counting happens in the browser.
 
-## 15. Open Questions
+### Step 13: Star Rating — Detailed Implementation
+
+**Goal:** Add a 1-5 star rating field to books. Stored as an integer (1-5) in SQLite, nullable. Displayed as Unicode star characters (⭐) in the table. Editable via inline cell editing with a select dropdown. Unrated books show blank. Includes sort-by-rating options in the sort dropdown.
+
+**Why:** Gives users a quick way to rate their favorite books and sort their collection by rating.
+
+**Files to change:** `server.js`, `public/index.html`, `public/app.js`
+
+---
+
+#### 1. Database Migration (`server.js`)
+
+SQLite's `ALTER TABLE` only supports `ADD COLUMN` — it cannot add `CHECK` constraints or modify columns after creation. The safe approach is a table-rename migration:
+
+```javascript
+// After the existing CREATE TABLE IF NOT EXISTS block, add:
+const currentTableInfo = db.prepare("PRAGMA table_info(books)").all();
+const hasRatingColumn = currentTableInfo.some(col => col.name === 'rating');
+
+if (!hasRatingColumn) {
+  // Step 1: Rename the existing table
+  db.exec('ALTER TABLE books RENAME TO books_old');
+
+  // Step 2: Create the new table with the rating column
+  db.exec(`
+    CREATE TABLE books (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      title TEXT NOT NULL,
+      author TEXT,
+      status TEXT DEFAULT 'want to read',
+      category TEXT,
+      notes TEXT,
+      rating INTEGER CHECK(rating >= 1 AND rating <= 5),
+      created_at TEXT DEFAULT (datetime('now'))
+    )
+  `);
+
+  // Step 3: Copy all data from the old table (rating will be NULL for existing books)
+  db.exec(`
+    INSERT INTO books (id, title, author, status, category, notes, created_at)
+    SELECT id, title, author, status, category, notes, created_at
+    FROM books_old
+  `);
+
+  // Step 4: Drop the old table
+  db.exec('DROP TABLE books_old');
+
+  console.log('Database migration: added rating column.');
+}
+```
+
+**Key points:**
+- `PRAGMA table_info(books)` returns an array of column objects; we check if `name === 'rating'` exists.
+- The `CHECK(rating >= 1 AND rating <= 5)` constraint ensures only valid ratings are stored.
+- Existing books get `rating = NULL` (not rated).
+
+---
+
+#### 2. Backend API Updates (`server.js`)
+
+**POST `/api/books`** — Add `rating` to the INSERT statement:
+
+```javascript
+// OLD:
+const stmt = db.prepare(
+  'INSERT INTO books (title, author, status, category, notes) VALUES (?, ?, ?, ?, ?)'
+);
+const result = stmt.run(title, author, status, category, notes);
+
+// NEW:
+const stmt = db.prepare(
+  'INSERT INTO books (title, author, status, category, notes, rating) VALUES (?, ?, ?, ?, ?, ?)'
+);
+const result = stmt.run(title, author, status, category, notes, req.body.rating || null);
+```
+
+**PUT `/api/books/:id`** — Add `rating` to the UPDATE statement:
+
+```javascript
+// OLD:
+const stmt = db.prepare(
+  'UPDATE books SET title = ?, author = ?, status = ?, category = ?, notes = ? WHERE id = ?'
+);
+const result = stmt.run(title, author, status, category, notes, Number(id));
+
+// NEW:
+const stmt = db.prepare(
+  'UPDATE books SET title = ?, author = ?, status = ?, category = ?, notes = ?, rating = ? WHERE id = ?'
+);
+const result = stmt.run(title, author, status, category, notes, req.body.rating || null, Number(id));
+```
+
+**Key points:**
+- `req.body.rating || null` handles the case where rating is not sent (defaults to NULL).
+- The `GET /api/books` endpoint does NOT need changes — it already returns all columns including `rating`.
+
+---
+
+#### 3. Frontend — Add Form (`public/index.html`)
+
+Add a rating field to the "Add a Book" form, after the "Notes" field and before the submit button:
+
+```html
+<div class="form-group">
+  <label for="rating">Rating</label>
+  <select id="rating" name="rating">
+    <option value="">Not rated</option>
+    <option value="1">⭐ (1 star)</option>
+    <option value="2">⭐⭐ (2 stars)</option>
+    <option value="3">⭐⭐⭐ (3 stars)</option>
+    <option value="4">⭐⭐⭐⭐ (4 stars)</option>
+    <option value="5">⭐⭐⭐⭐⭐ (5 stars)</option>
+  </select>
+</div>
+```
+
+**Key points:**
+- The "Not rated" option has an empty `value` so it maps to `null` when sent to the backend.
+- The `id="rating"` is used in `app.js` to get the form value.
+
+---
+
+#### 4. Frontend — Table Header (`public/index.html`)
+
+Add a "Rating" column header to the table:
+
+```html
+<th>Rating</th>
+```
+
+Insert it between the "Notes" and "Added" columns in the `<thead>`.
+
+---
+
+#### 5. Frontend — Rendering (`public/app.js`)
+
+**5a. Add rating to form data collection:**
+
+In the form submit handler, add the rating to `bookData`:
+
+```javascript
+const bookData = {
+  title: title,
+  author: formData.get('author'),
+  status: formData.get('status'),
+  category: formData.get('category'),
+  notes: formData.get('notes'),
+  rating: formData.get('rating') || null
+};
+```
+
+**5b. Add rating column to `addBookToTable()`:**
+
+In the `addBookToTable` function, add a new `<td>` for rating between the Notes and Added columns:
+
+```javascript
+function addBookToTable(book) {
+  const row = document.createElement('tr');
+  row.dataset.id = book.id;
+
+  // Helper: convert rating integer to star string
+  const ratingStars = (rating) => {
+    if (!rating) return '';
+    return '⭐'.repeat(rating);
+  };
+
+  row.innerHTML = `
+    <td class="editable" data-field="title">${escapeHtml(book.title)}</td>
+    <td class="editable" data-field="author">${escapeHtml(book.author || '')}</td>
+    <td class="editable" data-field="status">${escapeHtml(book.status)}</td>
+    <td class="editable" data-field="category">${escapeHtml(book.category || '')}</td>
+    <td class="editable" data-field="notes">${escapeHtml(book.notes || '')}</td>
+    <td class="editable" data-field="rating">${ratingStars(book.rating)}</td>
+    <td>${new Date(book.created_at).toLocaleDateString()}</td>
+    <td>
+      <button class="edit-btn" data-id="${book.id}">Edit</button>
+      <button class="delete-btn" data-id="${book.id}">Delete</button>
+    </td>
+  `;
+  booksBody.appendChild(row);
+}
+```
+
+**Key points:**
+- `ratingStars()` returns an empty string for `null`/`undefined` ratings (blank cell).
+- The rating `<td>` has `class="editable"` and `data-field="rating"` so the existing inline-edit logic handles it.
+
+**5c. Handle rating in inline edit mode:**
+
+In the edit/save handler, the existing logic already handles different field types. We need to add a case for the `rating` field in the edit-mode cell creation:
+
+```javascript
+// In the edit-btn handler, inside the cells.forEach loop:
+if (field === 'status') {
+  input = document.createElement('select');
+  input.innerHTML = `
+    <option value="want to read" ${value === 'want to read' ? 'selected' : ''}>Want to Read</option>
+    <option value="reading" ${value === 'reading' ? 'selected' : ''}>Reading</option>
+    <option value="read" ${value === 'read' ? 'selected' : ''}>Read</option>
+  `;
+} else if (field === 'rating') {
+  input = document.createElement('select');
+  input.innerHTML = `
+    <option value="">Not rated</option>
+    <option value="1" ${value === '1' ? 'selected' : ''}>⭐</option>
+    <option value="2" ${value === '2' ? 'selected' : ''}>⭐⭐</option>
+    <option value="3" ${value === '3' ? 'selected' : ''}>⭐⭐⭐</option>
+    <option value="4" ${value === '4' ? 'selected' : ''}>⭐⭐⭐⭐</option>
+    <option value="5" ${value === '5' ? 'selected' : ''}>⭐⭐⭐⭐⭐</option>
+  `;
+} else if (field === 'notes') {
+  // ... existing notes handling ...
+} else {
+  // ... existing text input handling ...
+}
+```
+
+**Key points:**
+- The `value` here is the current text content of the cell (e.g., `"⭐⭐⭐"` or `""`).
+- We compare `value === '3'` etc. — but wait, the cell displays stars, not numbers. We need to handle this carefully.
+
+**Important fix for rating edit logic:** Since the cell displays stars (e.g., `"⭐⭐⭐"`) but we need to store the number (`3`), we need to store the numeric rating in the `data-field` or use a different approach. The simplest fix: in `addBookToTable()`, store the numeric rating as the cell text and convert to stars only for display:
+
+```javascript
+// In addBookToTable(), use a span for display:
+<td class="editable" data-field="rating" data-rating="${book.rating || ''}">
+  ${ratingStars(book.rating)}
+</td>
+```
+
+Then in the edit handler, read the numeric value from `data-rating` instead of `textContent`:
+
+```javascript
+} else if (field === 'rating') {
+  const cell = cells[i];
+  const currentRating = cell.dataset.rating || '';
+  input = document.createElement('select');
+  input.innerHTML = `
+    <option value="" ${currentRating === '' ? 'selected' : ''}>Not rated</option>
+    <option value="1" ${currentRating === '1' ? 'selected' : ''}>⭐</option>
+    <option value="2" ${currentRating === '2' ? 'selected' : ''}>⭐⭐</option>
+    <option value="3" ${currentRating === '3' ? 'selected' : ''}>⭐⭐⭐</option>
+    <option value="4" ${currentRating === '4' ? 'selected' : ''}>⭐⭐⭐⭐</option>
+    <option value="5" ${currentRating === '5' ? 'selected' : ''}>⭐⭐⭐⭐⭐</option>
+  `;
+  // After creating the select, replace the cell content
+  cell.innerHTML = '';
+  cell.appendChild(input);
+  // Store the numeric value for save
+  input.dataset.field = field;
+  input.dataset.rating = currentRating;
+```
+
+Actually, this is getting complex. Let me simplify: **use a hidden data attribute approach.**
+
+**Simpler approach:** In `addBookToTable()`, store the numeric rating in a `data-rating` attribute on the `<td>`:
+
+```javascript
+<td class="editable" data-field="rating" data-rating="${book.rating || ''}">
+  ${ratingStars(book.rating)}
+</td>
+```
+
+In the edit handler, for the `rating` field specifically, read from `data-rating` instead of `textContent`:
+
+```javascript
+cells.forEach(cell => {
+  const field = cell.dataset.field;
+  let value = cell.textContent;
+
+  // For rating, use the data attribute instead of text content
+  if (field === 'rating') {
+    value = cell.dataset.rating || '';
+  }
+
+  // ... then create the select with the correct value ...
+});
+```
+
+In the save handler, for the `rating` field, write the numeric value back to both `data-rating` and the cell text:
+
+```javascript
+cells.forEach(cell => {
+  const input = cell.querySelector('input, select, textarea');
+  const field = input.dataset.field;
+  let displayValue = input.value;
+
+  if (field === 'rating') {
+    // Store numeric value in data attribute
+    cell.dataset.rating = input.value || '';
+    // Display stars in cell text
+    cell.textContent = input.value ? '⭐'.repeat(parseInt(input.value)) : '';
+  } else {
+    cell.textContent = input.value;
+  }
+});
+```
+
+This keeps the edit/save logic working with numeric values while displaying stars.
+
+**5d. Add sort-by-rating options:**
+
+In `public/index.html`, add two new options to the sort dropdown:
+
+```html
+<option value="rating-desc">Rating (Highest)</option>
+<option value="rating-asc">Rating (Lowest)</option>
+```
+
+In `public/app.js`, update the `renderBooks()` sort logic:
+
+```javascript
+filtered.sort((a, b) => {
+  if (currentSort === 'title-asc') return (a.title || '').localeCompare(b.title || '');
+  if (currentSort === 'title-desc') return (b.title || '').localeCompare(a.title || '');
+  if (currentSort === 'date-asc') return new Date(a.created_at) - new Date(b.created_at);
+  if (currentSort === 'date-desc') return new Date(b.created_at) - new Date(a.created_at);
+  if (currentSort === 'rating-desc') return (b.rating || 0) - (a.rating || 0);
+  if (currentSort === 'rating-asc') return (a.rating || 0) - (b.rating || 0);
+  return 0;
+});
+```
+
+**Key points:**
+- `(b.rating || 0)` treats NULL ratings as 0, so unrated books sort to the bottom for "Highest" and to the top for "Lowest".
+- No new API endpoints needed — sorting happens client-side, consistent with existing sort behavior.
+
+---
+
+#### 6. CSS Styling (`public/style.css`) — Optional
+
+The star characters render fine with default font sizing, but you may want to make them slightly larger for visibility:
+
+```css
+td[data-field="rating"] {
+  font-size: 18px;
+  text-align: center;
+  min-width: 60px;
+}
+```
+
+This centers the stars and gives the column enough width. The CSS custom properties already handle dark mode automatically since the star characters are Unicode and don't inherit text color issues.
+
+---
+
+#### 7. Summary of Changes
+
+| File | Changes |
+|------|---------|
+| `server.js` | Add migration block (PRAGMA check + table rename), update POST and PUT SQL statements to include `rating` |
+| `public/index.html` | Add rating `<select>` to form, add "Rating" `<th>` to table, add two sort options |
+| `public/app.js` | Add `rating` to form data, add `ratingStars()` helper, add rating `<td>` to `addBookToTable()`, handle rating in edit/save logic, add rating sort cases |
+| `public/style.css` | Optional: center and size star characters in the rating column |
+
+---
+
+#### 8. Verification Steps
+
+1. **Restart the server** — `node server.js` should log "Database migration: added rating column."
+2. **Add a book with a rating** — Select "⭐⭐⭐ (3 stars)" in the form, submit. The table should show `⭐⭐⭐` in the Rating column.
+3. **Add a book without a rating** — Leave the rating as "Not rated", submit. The Rating column should be blank.
+4. **Edit a book's rating** — Click Edit on a rated book, change the rating via the select dropdown, click Save. The stars should update.
+5. **Sort by rating** — Select "Rating (Highest)" from the sort dropdown. Books with 5 stars should appear first, unrated books at the bottom.
+6. **Existing books** — Any books already in the database should display as blank in the Rating column (they have no rating).
+7. **Database persistence** — Stop the server, restart it. All ratings should still be there.
+
+---
+
+#### 9. Edge Cases
+
+- **Existing books without ratings:** They get `rating = NULL` after migration. The `ratingStars()` function returns `''` for NULL, so the cell is blank.
+- **Sorting with mixed ratings:** NULL ratings are treated as 0 in sort comparisons, so they sort to the bottom (highest) or top (lowest).
+- **Rating value validation:** The SQLite `CHECK` constraint prevents invalid values. If somehow an invalid value is sent, the database will reject it and the server returns a 500 error.
+- **Edit mode with unrated book:** The select dropdown shows "Not rated" as selected when `data-rating` is empty.
+
+## 17. Open Questions
 
 Questions intentionally left unresolved because they don't block the first implementation:
 
@@ -247,7 +632,7 @@ Questions intentionally left unresolved because they don't block the first imple
 - Whether to support multiple categories per book (single category for MVP)
 - Whether to add a "last updated" timestamp alongside `created_at`
 
-## 16. Decisions Log
+## 18. Decisions Log
 
 Notes on judgment calls made during this planning conversation:
 
