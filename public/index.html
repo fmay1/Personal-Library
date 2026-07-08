@@ -40,6 +40,17 @@
       <label for="notes">Notes</label>
       <textarea id="notes" name="notes" rows="3"></textarea>
     </div>
+    <div class="form-group">
+      <label for="rating">Rating</label>
+      <select id="rating" name="rating">
+        <option value="">Not rated</option>
+        <option value="1">⭐ (1 star)</option>
+        <option value="2">⭐⭐ (2 stars)</option>
+        <option value="3">⭐⭐⭐ (3 stars)</option>
+        <option value="4">⭐⭐⭐⭐ (4 stars)</option>
+        <option value="5">⭐⭐⭐⭐⭐ (5 stars)</option>
+      </select>
+    </div>
     <button type="submit">Add Book</button>
   </form>
 
@@ -78,6 +89,8 @@
         <option value="date-asc">Date Added (Oldest)</option>
         <option value="title-asc">Title (A-Z)</option>
         <option value="title-desc">Title (Z-A)</option>
+        <option value="rating-desc">Rating (Highest)</option>
+        <option value="rating-asc">Rating (Lowest)</option>
       </select>
     </div>
   </div>
@@ -91,6 +104,7 @@
         <th>Status</th>
         <th>Category</th>
         <th>Notes</th>
+        <th>Rating</th>
         <th>Added</th>
         <th>Actions</th>
       </tr>

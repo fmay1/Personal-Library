@@ -22,6 +22,41 @@ db.exec(`
   )
 `);
 
+// Database migration: add rating column if it doesn't exist
+const currentTableInfo = db.prepare("PRAGMA table_info(books)").all();
+const hasRatingColumn = currentTableInfo.some(col => col.name === 'rating');
+
+if (!hasRatingColumn) {
+  // Step 1: Rename the existing table
+  db.exec('ALTER TABLE books RENAME TO books_old');
+
+  // Step 2: Create the new table with the rating column
+  db.exec(`
+    CREATE TABLE books (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      title TEXT NOT NULL,
+      author TEXT,
+      status TEXT DEFAULT 'want to read',
+      category TEXT,
+      notes TEXT,
+      rating INTEGER CHECK(rating >= 1 AND rating <= 5),
+      created_at TEXT DEFAULT (datetime('now'))
+    )
+  `);
+
+  // Step 3: Copy all data from the old table (rating will be NULL for existing books)
+  db.exec(`
+    INSERT INTO books (id, title, author, status, category, notes, created_at)
+    SELECT id, title, author, status, category, notes, created_at
+    FROM books_old
+  `);
+
+  // Step 4: Drop the old table
+  db.exec('DROP TABLE books_old');
+
+  console.log('Database migration: added rating column.');
+}
+
 console.log('Database initialized successfully.');
 
 // Parse incoming JSON request bodies
@@ -41,9 +76,9 @@ app.post('/api/books', (req, res) => {
   
   try {
     const stmt = db.prepare(
-      'INSERT INTO books (title, author, status, category, notes) VALUES (?, ?, ?, ?, ?)'
+      'INSERT INTO books (title, author, status, category, notes, rating) VALUES (?, ?, ?, ?, ?, ?)'
     );
-    const result = stmt.run(title, author, status, category, notes);
+    const result = stmt.run(title, author, status, category, notes, req.body.rating || null);
     
     // Fetch the newly inserted book to return all fields including created_at
     const newBook = db.prepare('SELECT * FROM books WHERE id = ?').get(Number(result.lastInsertRowid));
@@ -72,9 +107,9 @@ app.put('/api/books/:id', (req, res) => {
   
   try {
     const stmt = db.prepare(
-      'UPDATE books SET title = ?, author = ?, status = ?, category = ?, notes = ? WHERE id = ?'
+      'UPDATE books SET title = ?, author = ?, status = ?, category = ?, notes = ?, rating = ? WHERE id = ?'
     );
-    const result = stmt.run(title, author, status, category, notes, Number(id));
+    const result = stmt.run(title, author, status, category, notes, req.body.rating || null, Number(id));
     
     if (result.changes === 0) {
       return res.status(404).json({ error: 'Book not found' });

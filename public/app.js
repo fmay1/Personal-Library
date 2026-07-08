@@ -66,7 +66,8 @@ document.addEventListener('DOMContentLoaded', () => {
       author: formData.get('author'),
       status: formData.get('status'),
       category: formData.get('category'),
-      notes: formData.get('notes')
+      notes: formData.get('notes'),
+      rating: formData.get('rating') || null
     };
 
     try {
@@ -133,7 +134,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const cells = row.querySelectorAll('.editable');
         cells.forEach(cell => {
           const field = cell.dataset.field;
-          const value = cell.textContent;
+          let value = cell.textContent;
+          
+          // For rating, use the data attribute instead of text content
+          if (field === 'rating') {
+            value = cell.dataset.rating || '';
+          }
+          
           let input;
           
           if (field === 'status') {
@@ -142,6 +149,16 @@ document.addEventListener('DOMContentLoaded', () => {
               <option value="want to read" ${value === 'want to read' ? 'selected' : ''}>Want to Read</option>
               <option value="reading" ${value === 'reading' ? 'selected' : ''}>Reading</option>
               <option value="read" ${value === 'read' ? 'selected' : ''}>Read</option>
+            `;
+          } else if (field === 'rating') {
+            input = document.createElement('select');
+            input.innerHTML = `
+              <option value="" ${value === '' ? 'selected' : ''}>Not rated</option>
+              <option value="1" ${value === '1' ? 'selected' : ''}>⭐</option>
+              <option value="2" ${value === '2' ? 'selected' : ''}>⭐⭐</option>
+              <option value="3" ${value === '3' ? 'selected' : ''}>⭐⭐⭐</option>
+              <option value="4" ${value === '4' ? 'selected' : ''}>⭐⭐⭐⭐</option>
+              <option value="5" ${value === '5' ? 'selected' : ''}>⭐⭐⭐⭐⭐</option>
             `;
           } else if (field === 'notes') {
             input = document.createElement('textarea');
@@ -169,9 +186,19 @@ document.addEventListener('DOMContentLoaded', () => {
         
         cells.forEach(cell => {
           const input = cell.querySelector('input, select, textarea');
-          updatedData[input.dataset.field] = input.value;
-          // Revert to text
-          cell.textContent = input.value;
+          const field = input.dataset.field;
+          let displayValue = input.value;
+
+          if (field === 'rating') {
+            // Store numeric value in data attribute
+            cell.dataset.rating = input.value || '';
+            // Display stars in cell text
+            cell.textContent = input.value ? '⭐'.repeat(parseInt(input.value)) : '';
+          } else {
+            cell.textContent = input.value;
+          }
+          
+          updatedData[field] = input.value;
         });
         
         try {
@@ -231,6 +258,8 @@ document.addEventListener('DOMContentLoaded', () => {
       if (currentSort === 'title-desc') return (b.title || '').localeCompare(a.title || '');
       if (currentSort === 'date-asc') return new Date(a.created_at) - new Date(b.created_at);
       if (currentSort === 'date-desc') return new Date(b.created_at) - new Date(a.created_at);
+      if (currentSort === 'rating-desc') return (b.rating || 0) - (a.rating || 0);
+      if (currentSort === 'rating-asc') return (a.rating || 0) - (b.rating || 0);
       return 0;
     });
 
@@ -260,12 +289,20 @@ document.addEventListener('DOMContentLoaded', () => {
   function addBookToTable(book) {
     const row = document.createElement('tr');
     row.dataset.id = book.id;
+
+    // Helper: convert rating integer to star string
+    const ratingStars = (rating) => {
+      if (!rating) return '';
+      return '⭐'.repeat(rating);
+    };
+
     row.innerHTML = `
       <td class="editable" data-field="title">${escapeHtml(book.title)}</td>
       <td class="editable" data-field="author">${escapeHtml(book.author || '')}</td>
       <td class="editable" data-field="status">${escapeHtml(book.status)}</td>
       <td class="editable" data-field="category">${escapeHtml(book.category || '')}</td>
       <td class="editable" data-field="notes">${escapeHtml(book.notes || '')}</td>
+      <td class="editable" data-field="rating" data-rating="${book.rating || ''}">${ratingStars(book.rating)}</td>
       <td>${new Date(book.created_at).toLocaleDateString()}</td>
       <td>
         <button class="edit-btn" data-id="${book.id}">Edit</button>
