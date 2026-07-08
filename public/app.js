@@ -2,9 +2,39 @@ document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('book-form');
   const booksBody = document.getElementById('books-body');
   const noBooksMessage = document.getElementById('no-books-message');
+  const searchInput = document.getElementById('search-input');
+  const noSearchResultsMessage = document.getElementById('no-search-results-message');
 
   // Fetch books when the page loads
   loadBooks();
+
+  // Search/Filter functionality
+  searchInput.addEventListener('input', (e) => {
+    const term = e.target.value.toLowerCase();
+    const rows = booksBody.querySelectorAll('tr');
+    let visibleCount = 0;
+
+    rows.forEach(row => {
+      const title = row.querySelector('[data-field="title"]').textContent.toLowerCase();
+      const author = row.querySelector('[data-field="author"]').textContent.toLowerCase();
+      const category = row.querySelector('[data-field="category"]').textContent.toLowerCase();
+
+      if (title.includes(term) || author.includes(term) || category.includes(term)) {
+        row.style.display = '';
+        visibleCount++;
+      } else {
+        row.style.display = 'none';
+      }
+    });
+
+    if (term === '') {
+      noSearchResultsMessage.style.display = 'none';
+      noBooksMessage.style.display = booksBody.children.length === 0 ? 'block' : 'none';
+    } else {
+      noBooksMessage.style.display = 'none';
+      noSearchResultsMessage.style.display = visibleCount === 0 ? 'block' : 'none';
+    }
+  });
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
