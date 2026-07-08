@@ -176,7 +176,6 @@ Things explicitly NOT being built in this version:
 
 Interesting ideas that came up while planning but aren't decisions:
 
-- Sorting the table by column (title, author, date)
 - Rating system (e.g., star rating)
 - Pagination for large collections
 - Exporting/importing data (CSV, JSON)
@@ -199,7 +198,46 @@ Milestone-sized steps, layered from simplest to most complex:
 8. **Edit book API endpoint + inline editing** — PUT `/api/books/:id` route, click Edit to transform row into editable form, Save to send PUT request
 9. **Search/filter** — Client-side search input that filters the displayed table in real-time by title, author, or category
 10. **Duplicate warning** — On add, check if a book with the same title already exists; show a confirmation dialog before proceeding
-11. **Error handling & polish** — Handle server errors gracefully (e.g., "Couldn't connect to server"), ensure empty table shows "no books yet" message
+11. **Client-side sorting** — Add sort controls (buttons or dropdown) to sort the table by date added (newest/oldest) or alphabetically by title (A-Z/Z-A); sorting happens in JavaScript on the in-memory array after data arrives from the API, consistent with the client-side search/filter approach
+12. **Summary card** — Add a card that displays the total number of books and a breakdown by status (read, reading, want to read). Purely client-side — no new API endpoints needed.
+13. **Error handling & polish** — Handle server errors gracefully (e.g., "Couldn't connect to server"), ensure empty table shows "no books yet" message
+
+### Step 12: Summary Card — Detailed Implementation
+
+**Goal:** Show a summary card with the total number of books and a breakdown by status (read, reading, want to read).
+
+**Why:** Gives an at-a-glance view of the collection without having to scan the table.
+
+**Files to change:** `public/index.html`, `public/style.css`, `public/app.js`
+
+**HTML (`public/index.html`):**
+- Add a `<div class="summary-card">` element between the closing `</form>` tag of the book form and the `.controls-container` (the search/sort bar).
+- Inside the summary card, add a `<h2>` with the text "Collection Summary".
+- Below the heading, add a `<div class="summary-stats">` containing four `<div class="stat-item">` elements:
+  - Each stat item has a `<span class="stat-count">` (the number, initially `0`) and a `<span class="stat-label">` (the label).
+  - Labels: "Total", "Reading", "Read", "Want to Read".
+
+**CSS (`public/style.css`):**
+- Style `.summary-card` to match the existing card aesthetic: use `--card-bg` for background, `--shadow` for box-shadow, `8px` border-radius, `24px` padding, and `margin-bottom: 24px`.
+- Style `.summary-card h2` with a slightly smaller size (`16px`) and `margin-bottom: 16px`.
+- Style `.summary-stats` as a flex row with `gap: 24px` and `justify-content: space-around`.
+- Style `.stat-item` as a flex column with `align-items: center` and `flex: 1`.
+- Style `.stat-count` with a large, bold font (`28px`, `700` weight) using the accent color (`--accent`).
+- Style `.stat-label` with a smaller, muted font (`13px`, `#6b7280` color, `text-transform: uppercase`, `500` weight).
+- Ensure all colors use CSS custom properties so dark mode works automatically.
+
+**JavaScript (`public/app.js`):**
+- Create a `renderSummary()` function that:
+  - Takes `allBooks` as its data source (the full collection, not the filtered view).
+  - Computes four counts: total (`allBooks.length`), reading, read, and want to read (using `filter` + `length` on the status field).
+  - Updates the `.stat-count` elements in the DOM with these values.
+- Call `renderSummary()` from the same places where the table is refreshed:
+  - After `loadBooks()` completes on page load.
+  - After successfully adding a book.
+  - After successfully editing a book.
+  - After successfully deleting a book.
+
+**No server changes needed.** The `allBooks` array already contains the `status` field for every book, so all counting happens in the browser.
 
 ## 15. Open Questions
 
