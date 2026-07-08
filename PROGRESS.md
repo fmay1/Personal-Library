@@ -1,7 +1,7 @@
 # PROGRESS.md
 
 ## Current State
-Visual Redesign Step 4 completed: Table styling (header, rows, hover) applied to `public/style.css`.
+Visual Redesign Step 4 refined: Table rows now appear as distinct cards with vertical spacing, subtle shadows, and rounded edge corners.
 
 ## Build Order Progress
 - [x] 1. Project structure & dependencies
@@ -20,7 +20,7 @@ Visual Redesign Step 4 completed: Table styling (header, rows, hover) applied to
 - [x] Step 1: Base styles — fonts, colors, page layout
 - [x] Step 2: Form styling — inputs, labels, spacing
 - [x] Step 3: Button styling — primary, edit, delete
-- [x] Step 4: Table styling — header, rows, hover
+- [x] Step 4: Table styling — header, rows, hover (refined with card-style rows)
 - [ ] Step 5: Search input styling
 - [ ] Step 6: Form card container + empty messages
 
@@ -44,8 +44,8 @@ Visual Redesign Step 4 completed: Table styling (header, rows, hover) applied to
 - Preserved generic `button` cursor and margin for fallback, but specific classes override as needed.
 
 ## Step 4: Table styling (Visual Redesign)
-- Updated `table` to use `border-collapse: separate`, `border-spacing: 0`, `background: #fff`, `border-radius: 8px`, `overflow: hidden`, and a subtle `box-shadow`. Increased `margin-top` to `24px`.
-- Styled `th` with `#f9fafb` background, `600` weight, `13px` uppercase text, `#6b7280` color, `12px 16px` padding, and a `2px` bottom border.
-- Styled `td` with `12px 16px` padding, `1px` bottom border (`#f3f4f6`), `14px` font size, and `#374151` color.
-- Added `tr:hover` with `#f9fafb` background for row highlighting.
-- Removed the old `th, td { border: 1px solid #ddd }` grid-style borders.
+- Updated `table` to use `border-collapse: separate`, `border-spacing: 0 8px`, and `background: transparent` to create vertical gaps between rows.
+- Styled `th` with transparent background, `600` weight, `13px` uppercase text, `#6b7280` color, `12px 16px` padding, and a `2px` bottom border.
+- Styled `td` with `12px 16px` padding, `#fff` background, `box-shadow: 0 1px 2px rgba(0,0,0,0.05)`, and removed bottom borders.
+- Added `border-radius: 6px` to `td:first-child` (left edges) and `td:last-child` (right edges) for a clean card appearance.
+- Updated `tr:hover td` to change background to `#f9fafb` for row highlighting.
