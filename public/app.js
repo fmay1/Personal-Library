@@ -86,6 +86,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const newBook = await response.json();
       allBooks.push(newBook);
       renderBooks();
+      renderSummary();
       form.reset();
     } catch (error) {
       console.error('Error adding book:', error);
@@ -112,6 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Remove from local array and re-render
         allBooks = allBooks.filter(b => b.id != id);
         renderBooks();
+        renderSummary();
       } catch (error) {
         console.error('Error deleting book:', error);
         alert(error.message);
@@ -190,6 +192,7 @@ document.addEventListener('DOMContentLoaded', () => {
             Object.assign(allBooks[bookIndex], updatedData);
           }
           renderBooks();
+          renderSummary();
         } catch (error) {
           console.error('Error updating book:', error);
           alert(error.message);
@@ -207,6 +210,7 @@ document.addEventListener('DOMContentLoaded', () => {
       
       allBooks = await response.json();
       renderBooks();
+      renderSummary();
     } catch (error) {
       console.error('Error loading books:', error);
     }
@@ -239,6 +243,18 @@ document.addEventListener('DOMContentLoaded', () => {
       noSearchResultsMessage.style.display = 'none';
       filtered.forEach(book => addBookToTable(book));
     }
+  }
+
+  function renderSummary() {
+    const total = allBooks.length;
+    const reading = allBooks.filter(b => b.status === 'reading').length;
+    const read = allBooks.filter(b => b.status === 'read').length;
+    const wantToRead = allBooks.filter(b => b.status === 'want to read').length;
+
+    document.getElementById('stat-total').textContent = total;
+    document.getElementById('stat-reading').textContent = reading;
+    document.getElementById('stat-read').textContent = read;
+    document.getElementById('stat-want-to-read').textContent = wantToRead;
   }
 
   function addBookToTable(book) {
