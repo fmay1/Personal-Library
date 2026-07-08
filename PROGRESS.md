@@ -1,7 +1,7 @@
 # PROGRESS.md
 
 ## Current State
-Visual Redesign Step 6 completed: Form card container, empty messages, and inline edit inputs polished. All 6 visual redesign steps are now complete.
+Dark mode toggle added. Theme preference is saved to localStorage and applied on load. CSS variables manage light/dark palettes across all components.
 
 ## Build Order Progress
 - [x] 1. Project structure & dependencies
@@ -23,6 +23,7 @@ Visual Redesign Step 6 completed: Form card container, empty messages, and inlin
 - [x] Step 4: Table styling — header, rows, hover (refined with card-style rows)
 - [x] Step 5: Search input styling
 - [x] Step 6: Form card container + empty messages
+- [x] Dark Mode: CSS variables, toggle button, localStorage persistence
 
 ## Step 1: Base styles (Visual Redesign)
 - Updated `body` with a modern system font stack, `#f5f5f5` background, `#1f1f1f` text color, and `1.6` line height.
@@ -60,3 +61,10 @@ Visual Redesign Step 6 completed: Form card container, empty messages, and inlin
 - Updated `.empty-message` to use `#9ca3af` color, `14px` font size, `24px` top margin, and `italic` font style for a softer, more polished empty state.
 - Refined `.editable input`, `.editable select`, `.editable textarea` with `6px 8px` padding, `#d1d5db` border, `4px` border-radius, and `13px` font size to fit cleanly inside table cells during inline editing.
 - Updated `body` to `max-width: 1000px` and `padding: 24px` for a slightly more spacious layout.
+
+## Dark Mode Implementation
+- Introduced CSS custom properties (`:root` and `[data-theme="dark"]`) to manage all color values centrally.
+- Added a toggle button in the header that switches the `data-theme` attribute on `<html>`.
+- Persisted user preference in `localStorage` so the theme survives page reloads.
+- Added smooth `transition` properties to `body`, inputs, and cards for a polished switch effect.
+- Updated placeholder text and `<option>` elements to respect theme variables.
