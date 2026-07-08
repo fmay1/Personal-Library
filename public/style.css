@@ -92,6 +92,52 @@ button {
   cursor: pointer;
 }
 
+#book-form button[type="submit"] {
+  background-color: #4f46e5;
+  color: #fff;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  margin-top: 8px;
+}
+
+#book-form button[type="submit"]:hover {
+  background-color: #4338ca;
+}
+
+.edit-btn {
+  background-color: transparent;
+  color: #4f46e5;
+  border: 1px solid #4f46e5;
+  padding: 5px 12px;
+  border-radius: 4px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.edit-btn:hover {
+  background-color: #4f46e5;
+  color: #fff;
+}
+
+.delete-btn {
+  background-color: transparent;
+  color: #ef4444;
+  border: 1px solid #ef4444;
+  padding: 5px 12px;
+  border-radius: 4px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.delete-btn:hover {
+  background-color: #ef4444;
+  color: #fff;
+}
+
 .search-container {
   margin-top: 20px;
   margin-bottom: 10px;

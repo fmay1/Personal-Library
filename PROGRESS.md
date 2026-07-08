@@ -1,7 +1,7 @@
 # PROGRESS.md
 
 ## Current State
-Visual Redesign Step 2 completed: Form styling (inputs, labels, spacing, focus states) applied to `public/style.css`.
+Visual Redesign Step 3 completed: Button styling (primary, edit, delete) applied to `public/style.css`.
 
 ## Build Order Progress
 - [x] 1. Project structure & dependencies
@@ -19,7 +19,7 @@ Visual Redesign Step 2 completed: Form styling (inputs, labels, spacing, focus s
 ## Visual Redesign Progress
 - [x] Step 1: Base styles — fonts, colors, page layout
 - [x] Step 2: Form styling — inputs, labels, spacing
-- [ ] Step 3: Button styling — primary, edit, delete
+- [x] Step 3: Button styling — primary, edit, delete
 - [ ] Step 4: Table styling — header, rows, hover
 - [ ] Step 5: Search input styling
 - [ ] Step 6: Form card container + empty messages
@@ -36,3 +36,9 @@ Visual Redesign Step 2 completed: Form styling (inputs, labels, spacing, focus s
 - Styled `input[type="text"]`, `select`, and `textarea` with `100%` width, `10px 12px` padding, `#d1d5db` border, `6px` border-radius, `14px` font size, and `#fff` background.
 - Added focus states for inputs with `#4f46e5` border and a subtle purple box-shadow.
 - Styled `#title-error` with `#ef4444` color, `13px` font size, and `4px` top margin.
+
+## Step 3: Button styling (Visual Redesign)
+- Styled `#book-form button[type="submit"]` as a solid purple button (`#4f46e5`) with white text, `10px 20px` padding, and `6px` border-radius. Added hover state (`#4338ca`).
+- Styled `.edit-btn` as an outlined purple button with transparent background, `5px 12px` padding, and `4px` border-radius. Hover inverts to solid purple.
+- Styled `.delete-btn` as an outlined red button (`#ef4444`) with transparent background, `5px 12px` padding, and `4px` border-radius. Hover inverts to solid red.
+- Preserved generic `button` cursor and margin for fallback, but specific classes override as needed.
