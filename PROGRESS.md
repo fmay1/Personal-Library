@@ -1,7 +1,7 @@
 # PROGRESS.md
 
 ## Current State
-Step 10 completed: Duplicate warning implemented. Users are warned if they try to add a book with a title that already exists, and can choose to proceed or cancel.
+Visual Redesign Step 1 completed: Base styles (modern font stack, background/text colors, heading hierarchy) applied to `public/style.css`.
 
 ## Build Order Progress
 - [x] 1. Project structure & dependencies
@@ -16,8 +16,16 @@ Step 10 completed: Duplicate warning implemented. Users are warned if they try t
 - [x] 10. Duplicate warning
 - [ ] 11. Error handling & polish
 
-## Step 10: Duplicate warning
-- Added client-side duplicate checking in `public/app.js` before submitting the add book form.
-- Fetches the current list of books, compares the new title (case-insensitive) against existing titles.
-- If a match is found, shows a `confirm()` dialog: "You already have a book with this title. Add it anyway?"
-- If the user cancels, submission is aborted. If they confirm, it proceeds normally.
+## Visual Redesign Progress
+- [x] Step 1: Base styles — fonts, colors, page layout
+- [ ] Step 2: Form styling — inputs, labels, spacing
+- [ ] Step 3: Button styling — primary, edit, delete
+- [ ] Step 4: Table styling — header, rows, hover
+- [ ] Step 5: Search input styling
+- [ ] Step 6: Form card container + empty messages
+
+## Step 1: Base styles (Visual Redesign)
+- Updated `body` with a modern system font stack, `#f5f5f5` background, `#1f1f1f` text color, and `1.6` line height.
+- Styled `h1` with `28px` size, `600` weight, and `24px` bottom margin.
+- Added `h2` styling with `18px` size, `500` weight, `#444` color, and `16px` bottom margin.
+- Preserved all existing layout properties (`max-width`, `margin`, `padding`) to maintain current page structure.
