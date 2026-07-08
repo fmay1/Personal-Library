@@ -1,7 +1,7 @@
 # PROGRESS.md
 
 ## Current State
-Dark mode toggle added. Theme preference is saved to localStorage and applied on load. CSS variables manage light/dark palettes across all components.
+Step 14 (Error handling & polish) implemented. Added a non-blocking error banner that appears on network/API failures and auto-hides after 5 seconds. Replaced blocking `alert()` calls with the banner for better UX. Verified empty table correctly shows "No books in your collection yet" message.
 
 ## Build Order Progress
 - [x] 1. Project structure & dependencies
@@ -16,8 +16,8 @@ Dark mode toggle added. Theme preference is saved to localStorage and applied on
 - [x] 10. Duplicate warning
 - [x] 11. Client-side sorting
 - [x] 12. Summary card
-- [ ] 13. Star rating
-- [ ] 14. Error handling & polish
+- [x] 13. Star rating
+- [x] 14. Error handling & polish
 
 ## Visual Redesign Progress
 - [x] Step 1: Base styles — fonts, colors, page layout
@@ -71,3 +71,11 @@ Dark mode toggle added. Theme preference is saved to localStorage and applied on
 - Persisted user preference in `localStorage` so the theme survives page reloads.
 - Added smooth `transition` properties to `body`, inputs, and cards for a polished switch effect.
 - Updated placeholder text and `<option>` elements to respect theme variables.
+
+## Step 14: Error Handling & Polish
+- Added a non-blocking error banner (`#error-banner`) to `index.html` that displays at the top of the page on network or API failures.
+- Created a `showError(message)` helper in `app.js` that displays the banner and automatically hides it after 5 seconds, clearing any previous timeouts to prevent flickering.
+- Replaced all blocking `alert()` calls in `app.js` with `showError()` for a smoother user experience.
+- Updated `loadBooks()` to show a clear "Couldn't connect to server" message if the initial fetch fails, so users aren't left wondering why the table is empty.
+- Verified existing empty-state logic in `renderBooks()` correctly shows "No books in your collection yet" when appropriate.
+- Added CSS styling for the error banner with light/dark mode support using existing CSS variables.

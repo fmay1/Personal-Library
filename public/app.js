@@ -26,6 +26,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let allBooks = [];
   let currentSort = 'date-desc';
+  let errorBannerTimeout = null;
+
+  // Error handling helper
+  function showError(message) {
+    const banner = document.getElementById('error-banner');
+    banner.textContent = message;
+    banner.style.display = 'block';
+    if (errorBannerTimeout) clearTimeout(errorBannerTimeout);
+    errorBannerTimeout = setTimeout(() => {
+      banner.style.display = 'none';
+    }, 5000);
+  }
 
   // Fetch books when the page loads
   loadBooks();
@@ -59,6 +71,8 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     } catch (err) {
       console.error('Could not check for duplicates:', err);
+      showError('Could not connect to server. Please try again later.');
+      return;
     }
 
     const bookData = {
@@ -91,7 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
       form.reset();
     } catch (error) {
       console.error('Error adding book:', error);
-      alert(error.message);
+      showError(error.message || 'Failed to add book. Please try again.');
     }
   });
 
@@ -117,7 +131,7 @@ document.addEventListener('DOMContentLoaded', () => {
         renderSummary();
       } catch (error) {
         console.error('Error deleting book:', error);
-        alert(error.message);
+        showError(error.message || 'Failed to delete book. Please try again.');
       }
     }
 
@@ -222,7 +236,7 @@ document.addEventListener('DOMContentLoaded', () => {
           renderSummary();
         } catch (error) {
           console.error('Error updating book:', error);
-          alert(error.message);
+          showError(error.message || 'Failed to update book. Please try again.');
         }
       }
     }
@@ -240,6 +254,7 @@ document.addEventListener('DOMContentLoaded', () => {
       renderSummary();
     } catch (error) {
       console.error('Error loading books:', error);
+      showError('Couldn\'t connect to server. Please make sure the server is running.');
     }
   }
 
