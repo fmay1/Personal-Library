@@ -22,36 +22,23 @@ document.addEventListener('DOMContentLoaded', () => {
   const noBooksMessage = document.getElementById('no-books-message');
   const searchInput = document.getElementById('search-input');
   const noSearchResultsMessage = document.getElementById('no-search-results-message');
+  const sortSelect = document.getElementById('sort-select');
+
+  let allBooks = [];
+  let currentSort = 'date-desc';
 
   // Fetch books when the page loads
   loadBooks();
 
   // Search/Filter functionality
-  searchInput.addEventListener('input', (e) => {
-    const term = e.target.value.toLowerCase();
-    const rows = booksBody.querySelectorAll('tr');
-    let visibleCount = 0;
+  searchInput.addEventListener('input', () => {
+    renderBooks();
+  });
 
-    rows.forEach(row => {
-      const title = row.querySelector('[data-field="title"]').textContent.toLowerCase();
-      const author = row.querySelector('[data-field="author"]').textContent.toLowerCase();
-      const category = row.querySelector('[data-field="category"]').textContent.toLowerCase();
-
-      if (title.includes(term) || author.includes(term) || category.includes(term)) {
-        row.style.display = '';
-        visibleCount++;
-      } else {
-        row.style.display = 'none';
-      }
-    });
-
-    if (term === '') {
-      noSearchResultsMessage.style.display = 'none';
-      noBooksMessage.style.display = booksBody.children.length === 0 ? 'block' : 'none';
-    } else {
-      noBooksMessage.style.display = 'none';
-      noSearchResultsMessage.style.display = visibleCount === 0 ? 'block' : 'none';
-    }
+  // Sort functionality
+  sortSelect.addEventListener('change', (e) => {
+    currentSort = e.target.value;
+    renderBooks();
   });
 
   form.addEventListener('submit', async (e) => {
@@ -97,7 +84,8 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       const newBook = await response.json();
-      addBookToTable(newBook, true); // Prepend new book to top
+      allBooks.push(newBook);
+      renderBooks();
       form.reset();
     } catch (error) {
       console.error('Error adding book:', error);
@@ -121,13 +109,9 @@ document.addEventListener('DOMContentLoaded', () => {
           throw new Error(errorData.error || 'Failed to delete book');
         }
 
-        // Remove the row from the table
-        e.target.closest('tr').remove();
-
-        // Check if table is empty to show the message
-        if (booksBody.children.length === 0) {
-          noBooksMessage.style.display = 'block';
-        }
+        // Remove from local array and re-render
+        allBooks = allBooks.filter(b => b.id != id);
+        renderBooks();
       } catch (error) {
         console.error('Error deleting book:', error);
         alert(error.message);
@@ -199,6 +183,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const errorData = await response.json().catch(() => ({}));
             throw new Error(errorData.error || 'Failed to update book');
           }
+          
+          // Update local array and re-render
+          const bookIndex = allBooks.findIndex(b => b.id == id);
+          if (bookIndex !== -1) {
+            Object.assign(allBooks[bookIndex], updatedData);
+          }
+          renderBooks();
         } catch (error) {
           console.error('Error updating book:', error);
           alert(error.message);
@@ -214,21 +205,43 @@ document.addEventListener('DOMContentLoaded', () => {
         throw new Error('Failed to fetch books');
       }
       
-      const books = await response.json();
-      booksBody.innerHTML = ''; // Clear existing rows
-      
-      if (books.length === 0) {
-        noBooksMessage.style.display = 'block';
-      } else {
-        noBooksMessage.style.display = 'none';
-        books.forEach(book => addBookToTable(book));
-      }
+      allBooks = await response.json();
+      renderBooks();
     } catch (error) {
       console.error('Error loading books:', error);
     }
   }
 
-  function addBookToTable(book, prepend = false) {
+  function renderBooks() {
+    const term = searchInput.value.toLowerCase();
+    let filtered = allBooks.filter(book => {
+      const title = (book.title || '').toLowerCase();
+      const author = (book.author || '').toLowerCase();
+      const category = (book.category || '').toLowerCase();
+      return title.includes(term) || author.includes(term) || category.includes(term);
+    });
+
+    // Sort the filtered books
+    filtered.sort((a, b) => {
+      if (currentSort === 'title-asc') return (a.title || '').localeCompare(b.title || '');
+      if (currentSort === 'title-desc') return (b.title || '').localeCompare(a.title || '');
+      if (currentSort === 'date-asc') return new Date(a.created_at) - new Date(b.created_at);
+      if (currentSort === 'date-desc') return new Date(b.created_at) - new Date(a.created_at);
+      return 0;
+    });
+
+    booksBody.innerHTML = '';
+    if (filtered.length === 0) {
+      noBooksMessage.style.display = term === '' ? 'block' : 'none';
+      noSearchResultsMessage.style.display = term !== '' ? 'block' : 'none';
+    } else {
+      noBooksMessage.style.display = 'none';
+      noSearchResultsMessage.style.display = 'none';
+      filtered.forEach(book => addBookToTable(book));
+    }
+  }
+
+  function addBookToTable(book) {
     const row = document.createElement('tr');
     row.dataset.id = book.id;
     row.innerHTML = `
@@ -243,12 +256,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <button class="delete-btn" data-id="${book.id}">Delete</button>
       </td>
     `;
-    if (prepend) {
-      booksBody.insertBefore(row, booksBody.firstChild);
-    } else {
-      booksBody.appendChild(row);
-    }
-    noBooksMessage.style.display = 'none';
+    booksBody.appendChild(row);
   }
 
   function escapeHtml(text) {

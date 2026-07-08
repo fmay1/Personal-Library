@@ -246,14 +246,32 @@ button {
   color: #fff;
 }
 
-.search-container {
+.controls-container {
+  display: flex;
+  gap: 16px;
   margin-top: 24px;
   margin-bottom: 16px;
+  align-items: flex-end;
 }
 
-#search-input {
+.search-container {
+  flex: 1;
+  margin: 0;
+}
+
+.sort-container {
+  display: flex;
+  flex-direction: column;
+  min-width: 180px;
+}
+
+.sort-container label {
+  margin-bottom: 6px;
+}
+
+#sort-select {
   width: 100%;
-  padding: 10px 14px;
+  padding: 10px 12px;
   border: 1px solid var(--input-border);
   border-radius: 6px;
   font-size: 14px;
@@ -261,9 +279,10 @@ button {
   box-sizing: border-box;
   background-color: var(--input-bg);
   color: var(--input-text);
+  cursor: pointer;
 }
 
-#search-input:focus {
+#sort-select:focus {
   outline: none;
   border-color: var(--accent);
   box-shadow: 0 0 0 3px var(--focus-ring);

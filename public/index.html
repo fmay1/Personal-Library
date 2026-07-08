@@ -43,9 +43,20 @@
     <button type="submit">Add Book</button>
   </form>
 
-  <!-- Search/Filter -->
-  <div class="search-container">
-    <input type="text" id="search-input" placeholder="Search by title, author, or category...">
+  <!-- Search/Filter & Sort -->
+  <div class="controls-container">
+    <div class="search-container">
+      <input type="text" id="search-input" placeholder="Search by title, author, or category...">
+    </div>
+    <div class="sort-container">
+      <label for="sort-select">Sort by:</label>
+      <select id="sort-select">
+        <option value="date-desc">Date Added (Newest)</option>
+        <option value="date-asc">Date Added (Oldest)</option>
+        <option value="title-asc">Title (A-Z)</option>
+        <option value="title-desc">Title (Z-A)</option>
+      </select>
+    </div>
   </div>
 
   <!-- Books Table -->
