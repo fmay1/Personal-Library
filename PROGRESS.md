@@ -1,7 +1,7 @@
 # PROGRESS.md
 
 ## Current State
-Visual Redesign Step 5 completed: Search input styling applied to `public/style.css`.
+Visual Redesign Step 6 completed: Form card container, empty messages, and inline edit inputs polished. All 6 visual redesign steps are now complete.
 
 ## Build Order Progress
 - [x] 1. Project structure & dependencies
@@ -22,7 +22,7 @@ Visual Redesign Step 5 completed: Search input styling applied to `public/style.
 - [x] Step 3: Button styling — primary, edit, delete
 - [x] Step 4: Table styling — header, rows, hover (refined with card-style rows)
 - [x] Step 5: Search input styling
-- [ ] Step 6: Form card container + empty messages
+- [x] Step 6: Form card container + empty messages
 
 ## Step 1: Base styles (Visual Redesign)
 - Updated `body` with a modern system font stack, `#f5f5f5` background, `#1f1f1f` text color, and `1.6` line height.
@@ -54,3 +54,9 @@ Visual Redesign Step 5 completed: Search input styling applied to `public/style.
 - Styled `#search-input` with `100%` width, `10px 14px` padding, `#d1d5db` border, `6px` border-radius, `14px` font size, `inherit` font family, and `#fff` background to match form inputs.
 - Added `#search-input:focus` with `outline: none`, `#4f46e5` border, and purple box-shadow for consistent focus state.
 - Updated `.search-container` with `margin-top: 24px` and `margin-bottom: 16px` for better vertical spacing around the search box.
+
+## Step 6: Form card container + empty messages (Visual Redesign)
+- Styled `#book-form` as a white card with `24px` padding, `8px` border-radius, and a subtle `box-shadow`. Added `margin-bottom: 24px` to separate it from the search container.
+- Updated `.empty-message` to use `#9ca3af` color, `14px` font size, `24px` top margin, and `italic` font style for a softer, more polished empty state.
+- Refined `.editable input`, `.editable select`, `.editable textarea` with `6px 8px` padding, `#d1d5db` border, `4px` border-radius, and `13px` font size to fit cleanly inside table cells during inline editing.
+- Updated `body` to `max-width: 1000px` and `padding: 24px` for a slightly more spacious layout.
