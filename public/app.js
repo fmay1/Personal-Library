@@ -40,8 +40,24 @@ document.addEventListener('DOMContentLoaded', () => {
     e.preventDefault();
 
     const formData = new FormData(form);
+    const title = formData.get('title').trim();
+
+    // Check for duplicates before submitting
+    try {
+      const res = await fetch('/api/books');
+      if (res.ok) {
+        const books = await res.json();
+        const isDuplicate = books.some(b => b.title.toLowerCase() === title.toLowerCase());
+        if (isDuplicate && !confirm('You already have a book with this title. Add it anyway?')) {
+          return;
+        }
+      }
+    } catch (err) {
+      console.error('Could not check for duplicates:', err);
+    }
+
     const bookData = {
-      title: formData.get('title'),
+      title: title,
       author: formData.get('author'),
       status: formData.get('status'),
       category: formData.get('category'),
