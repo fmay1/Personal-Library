@@ -14,9 +14,10 @@ Dark mode toggle added. Theme preference is saved to localStorage and applied on
 - [x] 8. Edit book API endpoint + inline editing
 - [x] 9. Search/filter
 - [x] 10. Duplicate warning
-- [ ] 11. Client-side sorting
-- [ ] 12. Summary card
-- [ ] 13. Error handling & polish
+- [x] 11. Client-side sorting
+- [x] 12. Summary card
+- [ ] 13. Star rating
+- [ ] 14. Error handling & polish
 
 ## Visual Redesign Progress
 - [x] Step 1: Base styles — fonts, colors, page layout
