@@ -62,6 +62,20 @@ console.log('Database initialized successfully.');
 // Parse incoming JSON request bodies
 app.use(express.json());
 
+// Validation helper for book input
+function validateBookInput(body) {
+  if (!body.title || String(body.title).trim() === '') {
+    return 'Title is required';
+  }
+  if (body.rating !== null && body.rating !== undefined) {
+    const rating = Number(body.rating);
+    if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
+      return 'Rating must be between 1 and 5';
+    }
+  }
+  return null;
+}
+
 // Serve static files from the public directory
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -72,6 +86,11 @@ app.get('/', (req, res) => {
 
 // Add a new book
 app.post('/api/books', (req, res) => {
+  const validationError = validateBookInput(req.body);
+  if (validationError) {
+    return res.status(400).json({ error: validationError });
+  }
+
   const { title, author, status, category, notes } = req.body;
   
   try {
@@ -103,6 +122,11 @@ app.get('/api/books', (req, res) => {
 // Update a book
 app.put('/api/books/:id', (req, res) => {
   const { id } = req.params;
+  const validationError = validateBookInput(req.body);
+  if (validationError) {
+    return res.status(400).json({ error: validationError });
+  }
+
   const { title, author, status, category, notes } = req.body;
   
   try {

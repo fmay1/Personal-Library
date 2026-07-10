@@ -1,7 +1,7 @@
 # PROGRESS.md
 
 ## Current State
-Step 14 (Error handling & polish) implemented. Added a non-blocking error banner that appears on network/API failures and auto-hides after 5 seconds. Replaced blocking `alert()` calls with the banner for better UX. Verified empty table correctly shows "No books in your collection yet" message.
+Step 14 (Error handling & polish) implemented. Added a non-blocking error banner that appears on network/API failures and auto-hides after 5 seconds. Replaced blocking `alert()` calls with the banner for better UX. Verified empty table correctly shows "No books in your collection yet" message. Added server-side validation for `POST /api/books` and `PUT /api/books/:id`. Client-side validation isn't a security or data-integrity boundary, so the server needed to enforce its own stated rules independently of the browser. Specifically, it now rejects requests with missing/whitespace-only titles (400) and validates that ratings, if provided, are integers between 1 and 5 (400).
 
 ## Build Order Progress
 - [x] 1. Project structure & dependencies
